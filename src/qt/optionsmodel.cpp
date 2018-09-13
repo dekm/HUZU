@@ -1,11 +1,12 @@
 // Copyright (c) 2011-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2018 The PIVX developers
+// Copyright (c) 2018 The HUZU developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/pivx-config.h"
+#include "config/huzu-config.h"
 #endif
 
 #include "optionsmodel.h"
@@ -62,7 +63,7 @@ void OptionsModel::Init()
 
     // Display
     if (!settings.contains("nDisplayUnit"))
-        settings.setValue("nDisplayUnit", BitcoinUnits::PIV);
+        settings.setValue("nDisplayUnit", BitcoinUnits::HUZU);
     nDisplayUnit = settings.value("nDisplayUnit").toInt();
 
     if (!settings.contains("strThirdPartyTxUrls"))
@@ -78,9 +79,9 @@ void OptionsModel::Init()
     fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();
 
     if (!settings.contains("fZeromintEnable"))
-        settings.setValue("fZeromintEnable", true);
+        settings.setValue("fZeromintEnable", false);
     fEnableZeromint = settings.value("fZeromintEnable").toBool();
-
+    
     if (!settings.contains("nZeromintPercentage"))
         settings.setValue("nZeromintPercentage", 10);
     nZeromintPercentage = settings.value("nZeromintPercentage").toLongLong();
@@ -89,10 +90,10 @@ void OptionsModel::Init()
         settings.setValue("nPreferredDenom", 0);
     nPreferredDenom = settings.value("nPreferredDenom", "0").toLongLong();
 
-    if (!settings.contains("nAnonymizePivxAmount"))
-        settings.setValue("nAnonymizePivxAmount", 1000);
+    if (!settings.contains("nAnonymizeHuzuAmount"))
+        settings.setValue("nAnonymizeHuzuAmount", 1000);
 
-    nAnonymizePivxAmount = settings.value("nAnonymizePivxAmount").toLongLong();
+    nAnonymizeHuzuAmount = settings.value("nAnonymizeHuzuAmount").toLongLong();
 
     if (!settings.contains("fShowMasternodesTab"))
         settings.setValue("fShowMasternodesTab", masternodeConfig.getCount());
@@ -166,8 +167,8 @@ void OptionsModel::Init()
         SoftSetArg("-zeromintpercentage", settings.value("nZeromintPercentage").toString().toStdString());
     if (settings.contains("nPreferredDenom"))
         SoftSetArg("-preferredDenom", settings.value("nPreferredDenom").toString().toStdString());
-    if (settings.contains("nAnonymizePivxAmount"))
-        SoftSetArg("-anonymizepivxamount", settings.value("nAnonymizePivxAmount").toString().toStdString());
+    if (settings.contains("nAnonymizeHuzuAmount"))
+        SoftSetArg("-anonymizehuzuamount", settings.value("nAnonymizeHuzuAmount").toString().toStdString());
 
     language = settings.value("language").toString();
 }
@@ -178,7 +179,7 @@ void OptionsModel::Reset()
 
     // Remove all entries from our QSettings object
     settings.clear();
-    resetSettings = true; // Needed in pivx.cpp during shotdown to also remove the window positions
+    resetSettings = true; // Needed in huzu.cpp during shotdown to also remove the window positions
 
     // default setting for OptionsModel::StartAtStartup - disabled
     if (GUIUtil::GetStartOnSystemStartup())
@@ -258,8 +259,8 @@ QVariant OptionsModel::data(const QModelIndex& index, int role) const
             return QVariant(nZeromintPercentage);
         case ZeromintPrefDenom:
             return QVariant(nPreferredDenom);
-        case AnonymizePivxAmount:
-            return QVariant(nAnonymizePivxAmount);
+        case AnonymizeHuzuAmount:
+            return QVariant(nAnonymizeHuzuAmount);
         case Listen:
             return settings.value("fListen");
         default:
@@ -388,10 +389,10 @@ bool OptionsModel::setData(const QModelIndex& index, const QVariant& value, int 
             emit hideZeroBalancesChanged(fHideZeroBalances);
             break;
 
-        case AnonymizePivxAmount:
-            nAnonymizePivxAmount = value.toInt();
-            settings.setValue("nAnonymizePivxAmount", nAnonymizePivxAmount);
-            emit anonymizePivxAmountChanged(nAnonymizePivxAmount);
+        case AnonymizeHuzuAmount:
+            nAnonymizeHuzuAmount = value.toInt();
+            settings.setValue("nAnonymizeHuzuAmount", nAnonymizeHuzuAmount);
+            emit anonymizeHuzuAmountChanged(nAnonymizeHuzuAmount);
             break;
         case CoinControlFeatures:
             fCoinControlFeatures = value.toBool();

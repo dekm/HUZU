@@ -1,9 +1,10 @@
 // Copyright (c) 2017-2018 The PIVX developers
+// Copyright (c) 2018 The HUZU developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef ZPIVCONTROLDIALOG_H
-#define ZPIVCONTROLDIALOG_H
+#ifndef ZHUZUCONTROLDIALOG_H
+#define ZHUZUCONTROLDIALOG_H
 
 #include <QDialog>
 #include <QTreeWidgetItem>
@@ -14,16 +15,16 @@ class CZerocoinMint;
 class WalletModel;
 
 namespace Ui {
-class ZPivControlDialog;
+class ZHuzuControlDialog;
 }
 
-class ZPivControlDialog : public QDialog
+class ZHuzuControlDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit ZPivControlDialog(QWidget *parent);
-    ~ZPivControlDialog();
+    explicit ZHuzuControlDialog(QWidget *parent);
+    ~ZHuzuControlDialog();
 
     void setModel(WalletModel* model);
 
@@ -32,7 +33,7 @@ public:
     static std::vector<CMintMeta> GetSelectedMints();
 
 private:
-    Ui::ZPivControlDialog *ui;
+    Ui::ZHuzuControlDialog *ui;
     WalletModel* model;
     PrivacyDialog* privacyDialog;
 
@@ -53,4 +54,4 @@ private slots:
     void ButtonAllClicked();
 };
 
-#endif // ZPIVCONTROLDIALOG_H
+#endif // ZHUZUCONTROLDIALOG_H

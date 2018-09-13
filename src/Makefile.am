@@ -18,6 +18,21 @@ else
 LIBUNIVALUE = $(UNIVALUE_LIBS)
 endif
 
+if EMBEDDED_LEVELDB
+LEVELDB_CPPFLAGS += -I$(srcdir)/leveldb/include
+LEVELDB_CPPFLAGS += -I$(srcdir)/leveldb/helpers/memenv
+LIBLEVELDB += $(builddir)/leveldb/libleveldb.a
+LIBMEMENV  += $(builddir)/leveldb/libmemenv.a
+
+# NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
+$(LIBLEVELDB): $(LIBMEMENV)
+
+$(LIBLEVELDB) $(LIBMEMENV):
+	@echo "Building LevelDB ..." && $(MAKE) -C $(@D) $(@F) CXX="$(CXX)" \
+	  CC="$(CC)" PLATFORM=$(TARGET_OS) AR="$(AR)" $(LEVELDB_TARGET_FLAGS) \
+          OPT="$(AM_CXXFLAGS) $(PIE_FLAGS) $(CXXFLAGS) $(AM_CPPFLAGS) $(CPPFLAGS) -D__STDC_LIMIT_MACROS"
+endif
+
 BITCOIN_CONFIG_INCLUDES=-I$(builddir)/config
 BITCOIN_INCLUDES=-I$(builddir) -I$(builddir)/obj $(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS) $(CRYPTO_CFLAGS) $(SSL_CFLAGS)
 
@@ -65,15 +80,15 @@ noinst_PROGRAMS =
 TESTS =
 
 if BUILD_BITCOIND
-  bin_PROGRAMS += pivxd
+  bin_PROGRAMS += huzud
 endif
 
 if BUILD_BITCOIN_UTILS
-  bin_PROGRAMS += pivx-cli pivx-tx
+  bin_PROGRAMS += huzu-cli huzu-tx
 endif
 
 .PHONY: FORCE
-# pivx core #
+# huzu core #
 BITCOIN_CORE_H = \
   activemasternode.h \
   accumulators.h \
@@ -143,9 +158,9 @@ BITCOIN_CORE_H = \
   random.h \
   reverselock.h \
   reverse_iterate.h \
-  rpc/client.h \
-  rpc/protocol.h \
-  rpc/server.h \
+  rpcclient.h \
+  rpcprotocol.h \
+  rpcserver.h \
   scheduler.h \
   script/interpreter.h \
   script/script.h \
@@ -191,7 +206,7 @@ obj/build.h: FORCE
 	  "$(abs_top_srcdir)"
 libbitcoin_util_a-clientversion.$(OBJEXT): obj/build.h
 
-# server: shared between pivxd and pivx-qt
+# server: shared between huzud and huzu-qt
 libbitcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libbitcoin_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_server_a_SOURCES = \
@@ -212,14 +227,14 @@ libbitcoin_server_a_SOURCES = \
   noui.cpp \
   pow.cpp \
   rest.cpp \
-  rpc/blockchain.cpp \
-  rpc/masternode.cpp \
-  rpc/budget.cpp \
-  rpc/mining.cpp \
-  rpc/misc.cpp \
-  rpc/net.cpp \
-  rpc/rawtransaction.cpp \
-  rpc/server.cpp \
+  rpcblockchain.cpp \
+  rpcmasternode.cpp \
+  rpcmasternode-budget.cpp \
+  rpcmining.cpp \
+  rpcmisc.cpp \
+  rpcnet.cpp \
+  rpcrawtransaction.cpp \
+  rpcserver.cpp \
   script/sigcache.cpp \
   sporkdb.cpp \
   timedata.cpp \
@@ -239,7 +254,7 @@ libbitcoin_zmq_a_SOURCES = \
   zmq/zmqpublishnotifier.cpp
 endif
 
-# wallet: shared between pivxd and pivx-qt, but only linked
+# wallet: shared between huzud and huzu-qt, but only linked
 # when wallet enabled
 libbitcoin_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
@@ -334,7 +349,7 @@ libzerocoin_libbitcoin_zerocoin_a_SOURCES = \
   libzerocoin/Params.cpp \
   libzerocoin/SerialNumberSignatureOfKnowledge.cpp
 
-# common: shared between pivxd, and pivx-qt and non-server tools
+# common: shared between huzud, and huzu-qt and non-server tools
 libbitcoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_common_a_SOURCES = \
@@ -384,7 +399,7 @@ libbitcoin_util_a_SOURCES = \
   chainparamsbase.cpp \
   clientversion.cpp \
   random.cpp \
-  rpc/protocol.cpp \
+  rpcprotocol.cpp \
   sync.cpp \
   uint256.cpp \
   util.cpp \
@@ -397,26 +412,26 @@ if GLIBC_BACK_COMPAT
 libbitcoin_util_a_SOURCES += compat/glibc_compat.cpp
 endif
 
-# cli: shared between pivx-cli and pivx-qt
+# cli: shared between huzu-cli and huzu-qt
 libbitcoin_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_cli_a_SOURCES = \
-  rpc/client.cpp \
+  rpcclient.cpp \
   $(BITCOIN_CORE_H)
 
 nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
-# pivxd binary #
-pivxd_SOURCES = pivxd.cpp
-pivxd_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-pivxd_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-pivxd_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+# huzud binary #
+huzud_SOURCES = huzud.cpp
+huzud_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+huzud_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+huzud_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-pivxd_SOURCES += pivxd-res.rc
+huzud_SOURCES += huzud-res.rc
 endif
-pivxd_LDADD = \
+huzud_LDADD = \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_COMMON) \
   $(LIBUNIVALUE) \
@@ -426,42 +441,41 @@ pivxd_LDADD = \
   $(LIBBITCOIN_ZMQ) \
   $(LIBBITCOIN_CRYPTO) \
   $(LIBLEVELDB) \
-  $(LIBLEVELDB_SSE42) \
   $(LIBMEMENV) \
   $(LIBSECP256K1)
 
-pivxd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
+huzud_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
 
-# pivx-cli binary #
-pivx_cli_SOURCES = pivx-cli.cpp
-pivx_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
-pivx_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-pivx_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+# huzu-cli binary #
+huzu_cli_SOURCES = huzu-cli.cpp
+huzu_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
+huzu_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+huzu_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-pivx_cli_SOURCES += pivx-cli-res.rc
+huzu_cli_SOURCES += huzu-cli-res.rc
 endif
 
-pivx_cli_LDADD = \
+huzu_cli_LDADD = \
   $(LIBBITCOIN_CLI) \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_CRYPTO)
 
-pivx_cli_LDADD += $(BOOST_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
+huzu_cli_LDADD += $(BOOST_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
 #
 
-# pivx-tx binary #
-pivx_tx_SOURCES = pivx-tx.cpp
-pivx_tx_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-pivx_tx_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-pivx_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+# huzu-tx binary #
+huzu_tx_SOURCES = huzu-tx.cpp
+huzu_tx_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+huzu_tx_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+huzu_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-pivx_tx_SOURCES += pivx-tx-res.rc
+huzu_tx_SOURCES += huzu-tx-res.rc
 endif
 
-pivx_tx_LDADD = \
+huzu_tx_LDADD = \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_ZEROCOIN) \
@@ -469,7 +483,7 @@ pivx_tx_LDADD = \
   $(LIBBITCOIN_CRYPTO) \
   $(LIBSECP256K1)
 
-pivx_tx_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
+huzu_tx_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
 #
 
 # bitcoinconsensus library #
@@ -532,10 +546,6 @@ clean-local:
 %.pb.cc %.pb.h: %.proto
 	@test -f $(PROTOC)
 	$(AM_V_GEN) $(PROTOC) --cpp_out=$(@D) --proto_path=$(<D) $<
-
-if EMBEDDED_LEVELDB
-include Makefile.leveldb.include
-endif
 
 if ENABLE_TESTS
 include Makefile.test.include

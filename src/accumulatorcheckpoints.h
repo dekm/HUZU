@@ -1,9 +1,10 @@
 // Copyright (c) 2018 The PIVX developers
+// Copyright (c) 2018 The HUZU developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PIVX_ACCUMULATORCHECKPOINTS_H
-#define PIVX_ACCUMULATORCHECKPOINTS_H
+#ifndef HUZU_ACCUMULATORCHECKPOINTS_H
+#define HUZU_ACCUMULATORCHECKPOINTS_H
 
 #include <libzerocoin/bignum.h>
 #include <univalue/include/univalue.h>
@@ -18,4 +19,4 @@ namespace AccumulatorCheckpoints
     Checkpoint GetClosestCheckpoint(const int& nHeight, int& nHeightCheckpoint);
 }
 
-#endif //PIVX_ACCUMULATORCHECKPOINTS_H
+#endif //HUZU_ACCUMULATORCHECKPOINTS_H

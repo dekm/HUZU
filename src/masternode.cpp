@@ -1,5 +1,6 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2018 The PIVX developers
+// Copyright (c) 2018 The HUZU developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -208,15 +209,15 @@ void CMasternode::Check(bool forceCheck)
         return;
     }
 
-    if(lastPing.sigTime - sigTime < MASTERNODE_MIN_MNP_SECONDS){
-    	activeState = MASTERNODE_PRE_ENABLED;
-    	return;
-    }
+    // if(lastPing.sigTime - sigTime < MASTERNODE_MIN_MNP_SECONDS){
+    // 	activeState = MASTERNODE_PRE_ENABLED;
+    // 	return;
+    // }
 
     if (!unitTest) {
         CValidationState state;
         CMutableTransaction tx = CMutableTransaction();
-        CTxOut vout = CTxOut(9999.99 * COIN, obfuScationPool.collateralPubKey);
+        CTxOut vout = CTxOut(2999.99 * COIN, obfuScationPool.collateralPubKey);
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
 
@@ -466,12 +467,12 @@ bool CMasternodeBroadcast::CheckDefaultPort(std::string strService, std::string&
     CService service = CService(strService);
     int nDefaultPort = Params().GetDefaultPort();
 
-    if (service.GetPort() != nDefaultPort) {
-        strErrorRet = strprintf("Invalid port %u for masternode %s, only %d is supported on %s-net.",
-                                        service.GetPort(), strService, nDefaultPort, Params().NetworkIDString());
-        LogPrint("masternode", "%s - %s\n", strContext, strErrorRet);
-        return false;
-    }
+    // if (service.GetPort() != nDefaultPort) {
+    //     strErrorRet = strprintf("Invalid port %u for masternode %s, only %d is supported on %s-net.",
+    //                                     service.GetPort(), strService, nDefaultPort, Params().NetworkIDString());
+    //     LogPrint("masternode", "%s - %s\n", strContext, strErrorRet);
+    //     return false;
+    // }
 
     return true;
 }
@@ -526,10 +527,10 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
         return error("CMasternodeBroadcast::CheckAndUpdate - Got bad Masternode address signature : %s", errorMessage);
     }
 
-    if (Params().NetworkID() == CBaseChainParams::MAIN) {
-        if (addr.GetPort() != 51472) return false;
-    } else if (addr.GetPort() == 51472)
-        return false;
+    // if (Params().NetworkID() == CBaseChainParams::MAIN) {
+    //     if (addr.GetPort() != 51992) return false;
+    // } else if (addr.GetPort() == 51992)
+    //     return false;
 
     //search existing Masternode list, this is where we update existing Masternodes with new mnb broadcasts
     CMasternode* pmn = mnodeman.Find(vin);
@@ -586,7 +587,7 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
 
     CValidationState state;
     CMutableTransaction tx = CMutableTransaction();
-    CTxOut vout = CTxOut(9999.99 * COIN, obfuScationPool.collateralPubKey);
+    CTxOut vout = CTxOut(2999.99 * COIN, obfuScationPool.collateralPubKey);
     tx.vin.push_back(vin);
     tx.vout.push_back(vout);
 
@@ -617,13 +618,13 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
     }
 
     // verify that sig time is legit in past
-    // should be at least not earlier than block when 1000 PIV tx got MASTERNODE_MIN_CONFIRMATIONS
+    // should be at least not earlier than block when 1000 HUZU tx got MASTERNODE_MIN_CONFIRMATIONS
     uint256 hashBlock = 0;
     CTransaction tx2;
     GetTransaction(vin.prevout.hash, tx2, hashBlock, true);
     BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
     if (mi != mapBlockIndex.end() && (*mi).second) {
-        CBlockIndex* pMNIndex = (*mi).second;                                                        // block for 1000 PIVX tx -> 1 confirmation
+        CBlockIndex* pMNIndex = (*mi).second;                                                        // block for 1000 HUZU tx -> 1 confirmation
         CBlockIndex* pConfIndex = chainActive[pMNIndex->nHeight + MASTERNODE_MIN_CONFIRMATIONS - 1]; // block where tx got MASTERNODE_MIN_CONFIRMATIONS
         if (pConfIndex->GetBlockTime() > sigTime) {
             LogPrint("masternode","mnb - Bad sigTime %d for Masternode %s (%i conf block is at %d)\n",

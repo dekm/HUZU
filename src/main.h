@@ -2,6 +2,7 @@
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2018 The PIVX developers
+// Copyright (c) 2018 The HUZU developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -9,7 +10,7 @@
 #define BITCOIN_MAIN_H
 
 #if defined(HAVE_CONFIG_H)
-#include "config/pivx-config.h"
+#include "config/huzu-config.h"
 #endif
 
 #include "amount.h"
@@ -165,6 +166,15 @@ extern CBlockIndex* pindexBestHeader;
 /** Minimum disk space required - used in CheckDiskSpace() */
 static const uint64_t nMinDiskSpace = 52428800;
 
+/** Register a wallet to receive updates from core */
+void RegisterValidationInterface(CValidationInterface* pwalletIn);
+/** Unregister a wallet from core */
+void UnregisterValidationInterface(CValidationInterface* pwalletIn);
+/** Unregister all wallets from core */
+void UnregisterAllValidationInterfaces();
+/** Push an updated transaction to all registered wallets */
+void SyncWithWallets(const CTransaction& tx, const CBlock* pblock = NULL);
+
 /** Register with a network node to receive its signals */
 void RegisterNodeSignals(CNodeSignals& nodeSignals);
 /** Unregister a network node */
@@ -212,6 +222,10 @@ bool SendMessages(CNode* pto, bool fSendTrickle);
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
 
+// ***TODO*** probably not the right place for these 2
+/** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
+bool CheckProofOfWork(uint256 hash, unsigned int nBits);
+
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
 bool IsInitialBlockDownload();
 /** Format a string that describes several potential problems detected by the core */
@@ -220,13 +234,16 @@ std::string GetWarnings(std::string strFor);
 bool GetTransaction(const uint256& hash, CTransaction& tx, uint256& hashBlock, bool fAllowSlow = false);
 /** Find the best known block, and make it the tip of the block chain */
 
+bool DisconnectBlocksAndReprocess(int blocks);
+
 // ***TODO***
 double ConvertBitsToDouble(unsigned int nBits);
-int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount, bool isZPIVStake);
+int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount, bool isZHUZUStake);
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake);
 
 bool ActivateBestChain(CValidationState& state, CBlock* pblock = NULL, bool fAlreadyChecked = false);
 CAmount GetBlockValue(int nHeight);
+int64_t GetDevFundPayment(int nHeight, int64_t blockValue);
 
 /** Create a new block index entry for a given block hash */
 CBlockIndex* InsertBlockIndex(uint256 hash);
@@ -344,9 +361,9 @@ bool IsTransactionInChain(const uint256& txId, int& nHeightTx, CTransaction& tx)
 bool IsTransactionInChain(const uint256& txId, int& nHeightTx);
 bool IsBlockHashInChain(const uint256& hashBlock);
 bool ValidOutPoint(const COutPoint out, int nHeight);
-void RecalculateZPIVSpent();
-void RecalculateZPIVMinted();
-bool RecalculatePIVSupply(int nHeightStart);
+void RecalculateZHUZUSpent();
+void RecalculateZHUZUMinted();
+bool RecalculateHUZUSupply(int nHeightStart);
 bool ReindexAccumulators(list<uint256>& listMissingCheckpoints, string& strError);
 
 
